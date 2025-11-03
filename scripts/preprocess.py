@@ -10,22 +10,26 @@ OUT = Path("./data/chunks.jsonl") # Output file for text chunks
 # Initialize tokenizer for text chunking
 tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-small-en-v1.5")
 
-def chunk_text(text, max_tokens=500):
+def chunk_text(text, max_tokens=500, overlap=100):
     """
-    Split text into chunks based on token count
-    
+    Split text into overlapping chunks based on token count.
+
     Args:
         text (str): Input text to be chunked
         max_tokens (int): Maximum number of tokens per chunk
-        
+        overlap (int): Number of overlapping tokens between chunks
+
     Yields:
         str: Text chunks of specified maximum token length
     """
-    # Encode text into tokens
     tokens = tokenizer.encode(text)
-    # Generate chunks using sliding window
-    for i in range(0, len(tokens), max_tokens):
-        yield tokenizer.decode(tokens[i:i+max_tokens])
+    start = 0
+    while start < len(tokens):
+        end = start + max_tokens
+        chunk = tokens[start:end]
+        yield tokenizer.decode(chunk)
+        # Move start index by (max_tokens - overlap)
+        start += max_tokens - overlap
 
 def main():
     """
@@ -40,7 +44,7 @@ def main():
                 # Parse document JSON
                 doc = json.loads(line)
                 # Split document text into chunks
-                for i, chunk in enumerate(chunk_text(doc["text"])):
+                for i, chunk in enumerate(chunk_text(doc["text"], max_tokens=500, overlap=0)):
                     # Write chunk with metadata to output file
                     f_out.write(json.dumps({
                         "id": f"{doc['id']}:{i}",      # Unique chunk ID
@@ -52,4 +56,5 @@ def main():
                     }, ensure_ascii=False) + "\n")
 
 if __name__ == "__main__":
+
     main()
