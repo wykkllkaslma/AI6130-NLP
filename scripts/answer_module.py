@@ -35,7 +35,11 @@ Question: {query}
 If the question is not in English. Your should take the translation of context into account.
 And your answer should be based on the language of Question. 
 
-Provide references as [1], [2] matching context.
+Requirements:
+1. Must clearly recommend specific medication names.
+2. Briefly explain the reason for the medication choice.
+3. Add important usage precautions when necessary.
+4. Use citation markers such as [1], [2], etc., to indicate references.
 """
     # Call LLM to generate response
     resp = client.chat.completions.create(
@@ -44,4 +48,5 @@ Provide references as [1], [2] matching context.
     )
     
     # Return generated answer and reference URLs
+
     return resp.choices[0].message.content, refs
